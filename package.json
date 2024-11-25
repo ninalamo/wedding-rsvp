@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean-database": "node clean-db.js"
+    "clean-database": "node clean-db.js",
+    "vercel-build": "npm run clean-database && npm run build"
   },
   "dependencies": {
     "autoprefixer": "^10.4.20",
