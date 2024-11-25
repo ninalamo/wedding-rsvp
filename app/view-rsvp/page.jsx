@@ -26,6 +26,7 @@ export default async function ViewRSVP() {
                 <th style={styles.th}>Name</th>
                 <th style={styles.th}>Email</th>
                 <th style={styles.th}>Message</th>
+                <th style={styles.th}>Attending</th>
                 <th style={styles.th}>Submitted At</th>
               </tr>
             </thead>
@@ -36,6 +37,7 @@ export default async function ViewRSVP() {
                   <td style={styles.td}>{rsvp.name}</td>
                   <td style={styles.td}>{rsvp.email}</td>
                   <td style={styles.td}>{rsvp.message}</td>
+                  <td style={styles.td}>{rsvp.is_attending}</td>
                   <td style={styles.td}>
                     {new Date(rsvp.submitted_at).toLocaleString()}
                   </td>
@@ -48,6 +50,7 @@ export default async function ViewRSVP() {
     </div>
   );
 }
+
 
 const styles = {
   container: {

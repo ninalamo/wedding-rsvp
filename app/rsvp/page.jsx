@@ -3,59 +3,82 @@
 import { useState } from "react";
 
 export default function RSVPForm() {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [status, setStatus] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+    is_attending: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus("Submitting...");
-
     try {
-      const response = await fetch("/api/rsvp", {
+      const res = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      if (response.ok) {
-        setFormData({ name: "", email: "", message: "" });
-        setStatus("RSVP submitted successfully!");
-      } else {
-        const error = await response.json();
-        setStatus(error.error || "Failed to submit RSVP.");
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus("An error occurred.");
+      const result = await res.json();
+      alert(result.message);
+    } catch (error) {
+      console.error("Error submitting RSVP:", error);
     }
   };
 
   return (
-    <div>
-      <h1>RSVP</h1>
-      <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ padding: "20px", maxWidth: "500px", margin: "0 auto" }}>
+      <h1>RSVP Form</h1>
+      <div>
+        <label>Name:</label>
         <input
           type="text"
-          placeholder="Name"
+          name="name"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          onChange={handleChange}
           required
+          style={{ display: "block", width: "100%", marginBottom: "10px" }}
         />
+      </div>
+      <div>
+        <label>Email:</label>
         <input
           type="email"
-          placeholder="Email"
+          name="email"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={handleChange}
           required
+          style={{ display: "block", width: "100%", marginBottom: "10px" }}
         />
+      </div>
+      <div>
+        <label>Message:</label>
         <textarea
-          placeholder="Message"
+          name="message"
           value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-        />
-        <button type="submit">Submit</button>
-      </form>
-      {status && <p>{status}</p>}
-    </div>
+          onChange={handleChange}
+          style={{ display: "block", width: "100%", marginBottom: "10px" }}
+        ></textarea>
+      </div>
+      <div>
+        <label>Will you be attending?</label>
+        <select
+          name="is_attending"
+          value={formData.is_attending}
+          onChange={handleChange}
+          required
+          style={{ display: "block", width: "100%", marginBottom: "10px" }}
+        >
+          <option value="">Select...</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <button type="submit">Submit RSVP</button>
+    </form>
   );
 }
