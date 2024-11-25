@@ -1,6 +1,10 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
+import dynamic from "next/dynamic";
+
+// Dynamically import XLSX to avoid issues with SSR
+const XLSX = dynamic(() => import("xlsx"), { ssr: false });
 
 function exportToExcel(rsvps) {
   const ws = XLSX.utils.json_to_sheet(rsvps);
@@ -49,9 +53,9 @@ export default function ViewRSVP() {
                   <td style={styles.td}>{rsvp.name}</td>
                   <td style={styles.td}>{rsvp.email}</td>
                   <td style={styles.td}>{rsvp.message || "—"}</td>
-                  <td style={styles.td}>{rsvp.is_attending}</td>
+                  <td style={styles.td}>{rsvp.is_attending ?? "—"}</td>
                   <td style={styles.td}>
-                    {new Date(rsvp.submitted_at).toLocaleString()}
+                    {rsvp.submitted_at ? new Date(rsvp.submitted_at).toLocaleString() : "—"}
                   </td>
                 </tr>
               ))}
@@ -96,9 +100,6 @@ const styles = {
     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
     transition: "background-color 0.3s ease",
   },
-  exportButtonHover: {
-    backgroundColor: "#45a049",
-  },
   tableContainer: {
     overflowX: "auto",
     width: "100%",
@@ -125,9 +126,6 @@ const styles = {
   row: {
     borderBottom: "1px solid #eee",
     transition: "background-color 0.2s ease",
-  },
-  rowHover: {
-    backgroundColor: "#f0f0f0",
   },
   td: {
     padding: "12px",
