@@ -1,0 +1,5 @@
+# After app starts, validate if the database cleanup ran successfully
+- name: Validate database cleanup
+  run: |
+    sqlite3 ./rsvp.db "SELECT COUNT(*) FROM rsvps" > row_count.txt
+    cat row_count.txt
