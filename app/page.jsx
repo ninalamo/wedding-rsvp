@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Home() {
   // Set the default RSVP state to "yes"
   const [isAttending, setIsAttending] = useState("yes");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,13 +24,18 @@ export default function Home() {
     });
 
     if (response.ok) {
-
-      router.push("/thank-you");
+      setIsSubmitted(true);
     } else {
       alert("Failed to submit RSVP.");
     }
   };
 
+  useEffect(() => {
+    if (isSubmitted) {
+      // Navigate to the thank you page only on the client-side
+      window.location.href = "/thank-you";
+    }
+  }, [isSubmitted]);
 
   const formContainerStyle = {
     backgroundImage: "url('/images/rsvp.png')", // Replace with your image path
@@ -85,7 +91,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline"
             >
-              Conti's - Kawit, Cavite
+              Conti&apos;s - Kawit, Cavite
             </a>
           </p>
         </span>
@@ -156,7 +162,7 @@ export default function Home() {
       </main>
 
       <footer className="mt-8 text-gray-700">
-        <p>  It's about time we made it official! We look forward to celebrating with you!</p>
+      <p> It&apos;s about time we made it official! We look forward to celebrating with you!</p>
       </footer>
     </div>
   );
