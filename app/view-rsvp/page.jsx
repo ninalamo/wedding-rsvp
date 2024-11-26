@@ -21,7 +21,8 @@ export default function ViewRSVP() {
       const response = await fetch("/api/rsvp");
       console.log('response:',response);
       const data = await response.json();
-      setRsvps(data);
+      console.log(data);
+      setRsvps(data.rsvps);
     }
     fetchRSVPs();
   }, []);
@@ -32,16 +33,15 @@ export default function ViewRSVP() {
       <button style={styles.exportButton} onClick={() => exportToExcel(rsvps)}>
         Export to Excel
       </button>
-      {rsvps.length === 0 ? (
+      {rsvps && rsvps.length === 0 ? (
         <p style={styles.noData}>No RSVPs found.</p>
       ) : (
         <div style={styles.tableContainer}>
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHead}>
-                <th style={styles.th}>ID</th>
+
                 <th style={styles.th}>Name</th>
-                <th style={styles.th}>Email</th>
                 <th style={styles.th}>Message</th>
                 <th style={styles.th}>Is Attending</th>
                 <th style={styles.th}>Submitted At</th>
@@ -50,9 +50,8 @@ export default function ViewRSVP() {
             <tbody>
               {rsvps.map((rsvp) => (
                 <tr key={rsvp.id} style={styles.row}>
-                  <td style={styles.td}>{rsvp.id}</td>
+
                   <td style={styles.td}>{rsvp.name}</td>
-                  <td style={styles.td}>{rsvp.email}</td>
                   <td style={styles.td}>{rsvp.message || "—"}</td>
                   <td style={styles.td}>{rsvp.is_attending ?? "—"}</td>
                   <td style={styles.td}>

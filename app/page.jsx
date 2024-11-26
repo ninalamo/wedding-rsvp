@@ -7,15 +7,25 @@ export default function Home() {
   const [isAttending, setIsAttending] = useState("yes");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  function generateGUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = {
       name: e.target.name.value,
-      email: e.target.email.value,
+      email: generateGUID().replace('-','') + "@gmail.com",
       message: e.target.message.value,
       is_attending: isAttending,
     };
+
+    console.log('Sending data', JSON.stringify(formData));
 
     const response = await fetch("/api/rsvp", {
       method: "POST",
@@ -108,13 +118,6 @@ export default function Home() {
               type="text"
               name="name"
               placeholder="Full Name"
-              className="border p-2 rounded text-gray-900"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
               className="border p-2 rounded text-gray-900"
               required
             />

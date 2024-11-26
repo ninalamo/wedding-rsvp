@@ -14,7 +14,8 @@ export async function POST(req) {
     const { name, email, message = "", is_attending } = body;
 
     // Validate input
-    const validation = validateInput(body);
+    const validation = await validateInput(body);
+    console.log(validation.error);
     if (!validation.isValid) {
       return createResponse(validation.error, 400);
     }
@@ -64,10 +65,12 @@ export async function GET(req) {
 
       const rsvps = result.data.map(rsvp => {
         return {
+          id: rsvp.id,
           name: rsvp.name,
           email: rsvp.email,
           message: rsvp.message,
           is_attending: rsvp.is_attending,
+          submitted_at: rsvp.submitted_at,
         };
       });
 
