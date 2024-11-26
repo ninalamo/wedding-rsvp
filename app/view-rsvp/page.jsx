@@ -19,6 +19,7 @@ export default function ViewRSVP() {
   useEffect(() => {
     async function fetchRSVPs() {
       const response = await fetch("/api/rsvp");
+      console.log('response:',response);
       const data = await response.json();
       setRsvps(data);
     }

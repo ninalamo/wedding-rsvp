@@ -1,103 +1,87 @@
-// app/api/rsvp/route.js (Server-Side API)
-import Database from "better-sqlite3";
+// app/api/rsvp/route.js
 
-// Helper function to fetch all RSVPs
-async function fetchRSVPs() {
-  const db = new Database("rsvp.db");
-  try {
-    const rows = db.prepare("SELECT * FROM rsvp").all();
-    return rows;
-  } catch (error) {
-    console.error("Error fetching RSVPs:", error);
-    throw new Error("Failed to fetch RSVPs");
-  } finally {
-    db.close();
-  }
-}
+import { openSQLiteConnection, fetchRSVPsFromSQLite } from "../../lib/sqlite"; // Import updated SQLite functions
+import { saveRSVPToSQLite } from "../../lib/sqlite"; // Import save function
+import { saveRSVPToFirebase, fetchRSVPsFromFirebase } from "../../lib/firebase"; // Import Firebase functions
+import { createResponse } from "../../lib/response"; // Import response creation function
+import { validateInput } from "../../lib/validation"; // Import validation function
 
-// Function to check if the email already exists in the database
-async function isEmailExists(email) {
-  const db = new Database("rsvp.db");
-  try {
-    const row = db.prepare("SELECT * FROM rsvp WHERE email = ?").get(email);
-    return row ? true : false; // Returns true if the email exists, false otherwise
-  } catch (error) {
-    console.error("Error checking email:", error);
-    throw new Error("Failed to check email");
-  } finally {
-    db.close();
-  }
-}
-
-// API to handle POST requests
+// POST method for saving RSVP
 export async function POST(req) {
-  let db;
-
+  const db = openSQLiteConnection(); // Open the SQLite connection
   try {
-    db = new Database("rsvp.db");
     const body = await req.json();
+    const { name, email, message = "", is_attending } = body;
 
-    const { name, email, message, is_attending } = body;
-
-    // Validate required fields
-    if (!name || !email || typeof is_attending === "undefined") {
-      console.error("Missing required fields:", { name, email, is_attending });
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-        }
-      );
+    // Validate input
+    const validation = validateInput(body);
+    if (!validation.isValid) {
+      return createResponse(validation.error, 400);
     }
 
-    // Check if the email already exists
-    const emailExists = await isEmailExists(email);
-    if (emailExists) {
-      return new Response(
-        JSON.stringify({ error: "This email has already been used for RSVP." }),
-        { status: 400 }
-      );
+    const sanitizedMessage = message.trim(); // Ensure message is sanitized
+
+    let result;
+    if (process.env.DATABASE_TYPE === "sqlite") {
+      result = await saveRSVPToSQLite(db, name, email, sanitizedMessage, is_attending);
+    } else if (process.env.DATABASE_TYPE === "firebase") {
+      result = await saveRSVPToFirebase(db, name, email, sanitizedMessage, is_attending);
+    } else {
+      throw new Error("Unsupported DATABASE_TYPE");
     }
 
-    // Insert the RSVP into the database
-    db.prepare(
-      `
-      INSERT INTO rsvp (name, email, message, is_attending)
-      VALUES (?, ?, ?, ?)
-    `
-    ).run(name, email, message || "", is_attending);
-
-    console.log("RSVP saved:", { name, email, message, is_attending });
-    return new Response(
-      JSON.stringify({ message: "RSVP saved successfully!" }),
-      { status: 201 }
-    );
+    if (result.success) {
+      return createResponse("RSVP saved successfully!", 201);
+    } else {
+      return createResponse(result.error || "Failed to save RSVP", 500);
+    }
   } catch (error) {
     console.error("Error saving RSVP:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500 }
-    );
+    return createResponse("Failed to save RSVP. Please try again later.", 500);
   } finally {
-    if (db) db.close();
+    db.close(); // Close the SQLite connection if necessary
   }
 }
 
-// API to handle GET requests
+// app/api/rsvp/route.js
 export async function GET(req) {
+  const db = openSQLiteConnection(); // Open the SQLite connection
   try {
-    const rsvps = await fetchRSVPs();
-    return new Response(JSON.stringify(rsvps), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    let result;
+    if (process.env.DATABASE_TYPE === "sqlite") {
+      result = await fetchRSVPsFromSQLite(db); // Fetch RSVPs from SQLite
+    } else if (process.env.DATABASE_TYPE === "firebase") {
+      result = await fetchRSVPsFromFirebase(db); // Fetch RSVPs from Firebase
+    } else {
+      throw new Error("Unsupported DATABASE_TYPE");
+    }
+
+   // Ensure the result contains valid data before attempting to map over it
+
+    if (result.success && Array.isArray(result.data)) {
+      // You can now safely map over the result.data (RSVPs)
+      console.log('result in GET', result);
+
+      const rsvps = result.data.map(rsvp => {
+        return {
+          name: rsvp.name,
+          email: rsvp.email,
+          message: rsvp.message,
+          is_attending: rsvp.is_attending,
+        };
+      });
+
+      return new Response(JSON.stringify({ rsvps }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } else {
+      return createResponse(result.error || "No RSVPs found", 404);
+    }
   } catch (error) {
-    console.error("Error handling GET request:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch RSVPs" }),
-      { status: 500 }
-    );
+    console.error("Error fetching RSVPs:", error);
+    return createResponse("Failed to fetch RSVPs. Please try again later.", 500);
+  } finally {
+    db.close(); // Close the SQLite connection if necessary
   }
 }
