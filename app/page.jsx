@@ -165,7 +165,8 @@ export default function Home() {
       </main>
 
       <footer className="mt-8 text-gray-700">
-      <p> It&apos;s about time we made it official! We look forward to celebrating with you!</p>
+          <p> It&apos;s about time we made it official! We look forward to celebrating with you!</p>
+          <small>Powered by: Nin lols</small>
       </footer>
     </div>
   );
