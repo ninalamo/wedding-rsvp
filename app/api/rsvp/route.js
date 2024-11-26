@@ -44,6 +44,7 @@ export async function POST(req) {
   }
 }
 
+
 // app/api/rsvp/route.js
 export async function GET(req) {
   const db = openSQLiteConnection(); // Open the SQLite connection
